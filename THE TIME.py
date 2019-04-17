@@ -1,18 +1,12 @@
 
 # coding: utf-8
 
-# In[1]:
-
-
 import os
 import numpy as np
 import math as m
 import sys
 import numpy.polynomial.polynomial as poly
 import time
-
-
-# In[2]:
 
 
 #define input data
@@ -35,10 +29,6 @@ def take_first_element(List):
 
 working_times.sort(key=take_first_element)
 
-
-# In[36]:
-
-
 #converts a string in form 00:00:00 to hours since midnight (00:00:00 = 0, 07:45:00 = 7.75)
 def time_conv(string):
     hours=int(string[:2])
@@ -46,10 +36,6 @@ def time_conv(string):
     seconds=int(string[6:8])
     decimated_hours=((hours)+(minutes/60))+(seconds/(60**2))
     return decimated_hours
-
-
-# In[57]:
-
 
 #converts decimated hours to a string in form 00:00:00 (0 = 00:00:00, 7.75 = 07:45:00)
 #inverse of time_conv
@@ -68,16 +54,6 @@ def time_inv(number):
         
     time_formatted=":".join(output)
     return time_formatted
-
-
-# In[58]:
-
-
-print(time_inv(7.36))
-
-
-# In[59]:
-
 
 #from the working times need to work out:
 # a start time of the average day, an endtime oh the average day and the 'a' and 'b' value per day
@@ -122,10 +98,6 @@ def WT_parameter_calculation(working_times):
     
     return working_days,a_values,b_values
 
-
-# In[60]:
-
-
 def actual_time_conv(input):
     day=input[1] 
     hour=int(input[0][:2])
@@ -156,11 +128,6 @@ def actual_time_conv(input):
         else:
             time_f = 'Learn to type, jesus'
     return time_f
-    
-
-
-# In[61]:
-
 
 def actual_time():
     t = time.localtime()
@@ -176,15 +143,4 @@ def actual_time():
     time_f= actual_time_conv([formatter,t[6]])
     return time_f
 
-
-# In[62]:
-
-
 print(actual_time())
-
-
-# In[63]:
-
-
-print(actual_time_conv(['13:10:56', 0]))
-
