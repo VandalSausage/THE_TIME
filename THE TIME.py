@@ -4,168 +4,187 @@
 # In[1]:
 
 
-get_ipython().run_line_magic('matplotlib', 'inline')
 import os
 import numpy as np
-import scipy as sp
-from scipy.interpolate import interp1d
 import math as m
-#matplotlib.use('Agg')
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
-import matplotlib.gridspec as gridspec
 import sys
 import numpy.polynomial.polynomial as poly
 import time
 
 
-# In[10]:
+# In[2]:
 
 
+#define input data
+#input 1: all working days with start and end times
+#input 2: timestamp (time.local_time) - to be called in function
+
+#input 1
+#format: [['day of the week, 0=Monday etc...', start_time, end_time]......
+working_times=[]
+working_times.append([2,'07:45:00','17:45:00'])
+working_times.append([3,'07:45:00','17:45:00'])
+working_times.append([4,'07:45:00','17:45:00'])
+working_times.append([0,'07:45:00','17:45:00'])
+working_times.append([1,'07:45:00','17:45:00'])
+
+#days can be added in any order and will then be sorted into acsending order 
+#(say if you wanted to iteratively create a list of working times from an un-ordered dictionary)
+def take_first_element(List):
+    return List[0]
+
+working_times.sort(key=take_first_element)
+
+
+# In[36]:
+
+
+#converts a string in form 00:00:00 to hours since midnight (00:00:00 = 0, 07:45:00 = 7.75)
 def time_conv(string):
-    hour_f=int(string[:2])
-    minute_f=int(string[3:5])
-    second_f=int(string[6:8])
-    h_f=((hour_f)+(minute_f/60))+(second_f/(60**2))
-    print(h_f)
-    return h_f
+    hours=int(string[:2])
+    minutes=int(string[3:5])
+    seconds=int(string[6:8])
+    decimated_hours=((hours)+(minutes/60))+(seconds/(60**2))
+    return decimated_hours
 
 
-# In[3]:
+# In[57]:
 
+
+#converts decimated hours to a string in form 00:00:00 (0 = 00:00:00, 7.75 = 07:45:00)
+#inverse of time_conv
 
 def time_inv(number):
-    t_1=m.floor(number)
-    h_2=((number-t_1)*(60))
-    t_2=m.floor(h_2)
-    h_3=h_2-t_2
-    t_3=int(h_3*60)
-    output=[str(t_1),str(t_2),str(t_3)]
+    round_number_of_hours=m.floor(number)
+    total_number_of_minutes=(number-round_number_of_hours)*60
+    round_number_of_minutes=m.floor(total_number_of_minutes)
+    total_number_of_seconds=(total_number_of_minutes-round_number_of_minutes)*60
+    round_number_of_seconds=int(total_number_of_seconds)
+    output=[str(round_number_of_hours),str(round_number_of_minutes),str(round_number_of_seconds)]
     for k in range(3):
         if len(output[k]) == 1:
             join=['0',output[k]]
             output[k]="".join(join)
         
-    time_f=":".join(output)
-    return time_f
+    time_formatted=":".join(output)
+    return time_formatted
 
 
-# In[4]:
+# In[58]:
+
+
+print(time_inv(7.36))
+
+
+# In[59]:
+
+
+#from the working times need to work out:
+# a start time of the average day, an endtime oh the average day and the 'a' and 'b' value per day
+
+def WT_parameter_calculation(working_times):
+    #create a set of working days
+    working_days=[]
+    for i in range(len(working_times)):
+        working_days.append(working_times[i][0])
+
+
+    #find start times in hours from midnight of that day (07:45 = 7.75)
+    decimated_start_times=[]
+    for i in range(len(working_times)):
+        decimated_start_times.append(time_conv(working_times[i][1]))
+
+
+    #calculate mean for average day start time (still decimated)
+    actual_day_start_time=(sum(decimated_start_times)/len(decimated_start_times))
+
+
+    #calculate the length of each working day in decimated hours
+    day_lengths=[]
+    for i in range(len(working_times)):
+        day_lengths.append(time_conv(working_times[i][2])-time_conv(working_times[i][1]))
+
+
+    #calculate mean for average day length (still decimated)
+    actual_day_length=(sum(day_lengths)/len(day_lengths))
+
+
+    #calculate the length of each day relative to the actual day (i.e b values)
+    b_values=[]
+    for i in range(len(decimated_start_times)):
+        b_values.append((((day_lengths[i])/sum(day_lengths))*actual_day_length))
+   
+    #starttimes converted to decimal hours through the 'actual day' (i.e. a values)
+    a_values=[]
+    for i in range(len(decimated_start_times)):
+        a_values.append(actual_day_start_time + ((sum(day_lengths[:i])/sum(day_lengths))*actual_day_length))   
+    
+    
+    return working_days,a_values,b_values
+
+
+# In[60]:
 
 
 def actual_time_conv(input):
-    day=input[10:] 
-    hour=int(input[:2])
-    minute=int(input[3:5])
-    second=int(input[6:8])
-    boolean=1
-    #print(day)
-
-    if day != 'Monday':
-        if day != 'Tuesday':
-            if day != 'Wednesday':
-                if day != 'Thursday':
-                    if day != 'Friday':
-                        boolean=0
-                    else:
-                        start_time='08:35:21'
-                        end_time= '17:01:09'
-                        a=15
-                        b=1
-                else:
-                    start_time='05:28:54'
-                    end_time= '18:05:23'
-                    a=13
-                    b=2
-            else:
-                start_time= '05:38:43'
-                end_time= '17:20:09'
-                a=11
-                b=2
-        else:
-            start_time= '05:32:45'
-            end_time= '17:45:03'
-            a=9
-            b=2
-    else:    
-        start_time='07:45:00'
-        end_time= '16:07:56'
-        a=8
-        b=1
-     
+    day=input[1] 
+    hour=int(input[0][:2])
+    minute=int(input[0][3:5])
+    second=int(input[0][6:8])
+    not_a_real_boolean=0
     
-    if boolean != 0:
-        if time_conv(input) < time_conv(start_time) or time_conv(input) > time_conv(end_time):
+    for i in range(len(working_days)):
+        if day == working_days[i]:
+            start_time  = working_times[i][1]
+            end_time    = working_times[i][2]
+            a           = WT_parameter_calculation(working_times)[1][i]
+            b           = WT_parameter_calculation(working_times)[2][i]
+            not_a_real_boolean=1 
+    
+    if not_a_real_boolean == 1:
+        if time_conv(input[0]) < time_conv(start_time) or time_conv(input[0]) > time_conv(end_time):
             time_f='You are off the clock right now - get it together'
         else:
-            h=(time_conv(input)-time_conv(start_time))
+            h=(time_conv(input[0])-time_conv(start_time))
     
             #actual hours into the day
             h_a=((h/(time_conv(end_time)-time_conv(start_time)))*b)+a
             time_f = time_inv(h_a)
     else:
-        if day == 'Saturday' or day == 'Sunday':
-            time_f = 'Why are you checking this on the weekend, you maniac?'
+        if day not in WT_parameter_calculation(working_times)[0]:
+            time_f = 'Why are you checking this? Its not a work day! You maniac!'
         else:
             time_f = 'Learn to type, jesus'
     return time_f
     
 
 
-# In[5]:
+# In[61]:
 
 
 def actual_time():
     t = time.localtime()
     
-    if t[6] == 5 or t[6]==6:
-        time_f= 'Why are you checking this on the weekend, you maniac?'
-    else:
-        if t[6] == 0:
-            day='Monday'
-        if t[6] == 1:
-            day='Tuesday'
-        if t[6] == 2:
-            day='Wednesday'
-        if t[6] == 3:
-            day='Thursday'
-        if t[6] == 4:
-            day='Friday'
-        
-        output=[str(t[3]),str(t[4]),str(t[5])]
-        for k in range(3):
-            if len(output[k]) == 1:
-                join=['0',output[k]]
-                output[k]="".join(join)
+    output=[str(t[3]),str(t[4]),str(t[5])]
+    for k in range(3):
+        if len(output[k]) == 1:
+            join=['0',output[k]]
+            output[k]="".join(join)
        
-        formatter=(":".join(output),day)
-        #print((", ".join(formatter)))
-        time_f= actual_time_conv(", ".join(formatter))
+    formatter=(":".join(output))
+    
+    time_f= actual_time_conv([formatter,t[6]])
     return time_f
 
 
-# In[6]:
+# In[62]:
 
 
 print(actual_time())
 
 
-# In[7]:
+# In[63]:
 
 
-print(actual_time_conv('13:10:29, Wednesday'))
-
-
-# In[8]:
-
-
-name = input("Give me your name: ")
-print("Your name is " + name)
-
-
-# In[11]:
-
-
-time_conv('07:45:00')
+print(actual_time_conv(['13:10:56', 0]))
 
