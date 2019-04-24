@@ -16,7 +16,7 @@ Process of calculating the time:
 import time
 import math as m
 
-debug = False
+# debug = False
 
 ################################################################################
 ## FUNCTIONS ###################################################################
