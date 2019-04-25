@@ -1,15 +1,11 @@
 Feature: Work week data
 
-    Scenario: Calculate actual day
-        Given the input
-        When the actual day is calculated
-        Then the output is as expected
-
+    @error
     Scenario Outline: Invalid data
-        Given the input <work_week>
-        When the data is not valid
+        Given an invalid work week <work_week>
         Then the error message '<error>' is shown
 
         Examples:
-        |work_week   | error                                 |
-        | placeholder| 'Something wrong with your work week' |
+        |work_week| error                             |
+        |1        |Something wrong with your work week|
+        |2        |Something wrong with your work week|
