@@ -16,7 +16,7 @@ Process of calculating the time:
 import time
 import math as m
 
-# debug = False
+DEBUG = False
 
 ################################################################################
 ## FUNCTIONS ###################################################################
@@ -38,6 +38,7 @@ def time_day():
         5:"Saturday",
         6:"Sunday"
         }
+
     today = week[now[6]]
 
     # Get time
@@ -55,44 +56,76 @@ def time_day():
     return timestamp, today
 
 def timestamp_to_decimal(timestamp):
-    ''' turns timestamp string "hh:mm" into decimal representation of hours since midnght
+    ''' turns timestamp string "hh:mm" into decimal representation of hours since midnight
         e.g.: 08:30 -> 8.5 '''
 
-    # split out the timestamp into hrs, mins, secs
-    hours = float(timestamp[:2])
-    mins = float(timestamp[3:5])
-    seconds = float(timestamp[6:8])
+    invalid_data_error = "ERROR: timestamp supplied is not valid"
 
-    # turn the timestamp into a decimal number
-    decimal_time = float((hours)+(mins/60))+(seconds/(60**2))
+    # split timestamp
+    split_timestamp = timestamp.split(':')
 
-    return decimal_time
+    # first validation check
+    if len(split_timestamp) != 3:
+        return invalid_data_error
+
+    else:
+        # second validation check
+        for time_frag in split_timestamp:
+            if len(time_frag) > 2:
+                return invalid_data_error
+
+        # split out the timestamp into hrs, mins, secs
+        hours = float(split_timestamp[0])
+        mins = float(split_timestamp[1])
+        seconds = float(split_timestamp[2])
+
+        # third validation check
+        if hours < 0 or hours > 23 or mins < 0 or mins > 59 or seconds < 0 or seconds > 59:
+            return invalid_data_error
+
+        # turn the timestamp into a decimal number
+        decimal_time = float((hours)+(mins/60))+(seconds/(60**2))
+
+        return decimal_time
 
 def decimal_time_to_timestamp(decimal_time):
     ''' does opposite of time `timestamp_to_decimal` function
         turns decimal representation of hours since midnght into a timestamp
         e.g.: 8.5 -> 08:30 '''
 
-    hours = m.floor(decimal_time)
-    leftover_mins = (decimal_time - hours)*60
-    mins = m.floor(leftover_mins)
-    leftover_secs = leftover_mins-mins
-    secs = int(leftover_secs * 60)
+    invalid_data_error = "ERROR: decimal time supplied is not valid"
 
-    output = [str(hours), str(mins), str(secs)]
+    # check data is valid
+    if decimal_time < 0 or decimal_time >= 24:
+        return invalid_data_error
 
-    for k in range(3):
-        if len(output[k]) == 1:
-            join = ['0', output[k]]
-            output[k] = "".join(join)
-    timestamp = ":".join(output)
+    else:
+        hours = m.floor(decimal_time)
+        leftover_mins = (decimal_time - hours)*60
+        mins = m.floor(leftover_mins)
+        leftover_secs = leftover_mins-mins
+        secs = int(leftover_secs * 60)
 
-    return timestamp
+        output = [str(hours), str(mins), str(secs)]
+
+        for k in range(3):
+            if len(output[k]) == 1:
+                join = ['0', output[k]]
+                output[k] = "".join(join)
+        timestamp = ":".join(output)
+
+        return timestamp
 
 def work_week_and_actual_day(work_week_data):
     ''' Takes in ordered dictionary of your actual days worked with start and end times
     adds to this data structure to include information of that work day's start time on the
     Actual Day and the proportion of the Actual Day it takes up '''
+
+    # Error checking
+    # define vaild work days
+    valid_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    # error text
+    data_error = 'Something wrong with your work week'
 
     # number of days in work week
     week_length = len(work_week_data)
@@ -109,21 +142,36 @@ def work_week_and_actual_day(work_week_data):
     # first loop to build information about the 'actual day'
     for key, value in work_week_data.items():
 
-        # Find the start and end times for that day
-        start_time = value[0]
-        end_time = value[1]
+        if DEBUG:
+            print(key)
 
-        # turn these into decimal numbers
-        dec_start_time = timestamp_to_decimal(start_time)
-        dec_end_time = timestamp_to_decimal(end_time)
+        # first data validation check
+        if key not in valid_week:
+            return data_error
 
-        # find the hours in each work day and add to list
-        hrs_in_work_day = dec_end_time - dec_start_time
-        daily_hrs_in_work_week.append(hrs_in_work_day)
+        else:
 
-        # possibly not needed
-        total_start_hours += dec_start_time
-        total_end_hours += dec_end_time
+            # Find the start and end times for that day
+            start_time = value[0]
+            end_time = value[1]
+
+            # turn these into decimal numbers
+            dec_start_time = timestamp_to_decimal(start_time)
+            dec_end_time = timestamp_to_decimal(end_time)
+
+            # second data validation check that end time is after start time
+            if dec_start_time > dec_end_time:
+                if DEBUG:
+                    print(dec_start_time, dec_end_time, dec_start_time > dec_end_time)
+                return data_error
+
+            # find the hours in each work day and add to list
+            hrs_in_work_day = dec_end_time - dec_start_time
+            daily_hrs_in_work_week.append(hrs_in_work_day)
+
+            # possibly not needed
+            total_start_hours += dec_start_time
+            total_end_hours += dec_end_time
 
     # calculate "average work day"
     # - this is the how long your actual day will last and what time it starts and ends
@@ -149,7 +197,7 @@ def work_week_and_actual_day(work_week_data):
         work_week_data[key] = new_data
         countup += 1
 
-    if debug:
+    if DEBUG:
         print(work_week_data)
     return work_week_data
 
