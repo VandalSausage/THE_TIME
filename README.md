@@ -34,9 +34,9 @@
 
 1. Run tests before committing code
 
-2. Run pytests by typing `pytest`
+2. Pytest test in file `test_pytests.py`. Run them by typing `pytest`
 
-3. Run behave tests by typing `behave`
+3. Behave natural language test steps and python step implementations in the `/feature` directory. Run them by typing `behave`
 
 ### Commit your changes 
 
