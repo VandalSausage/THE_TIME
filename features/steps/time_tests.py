@@ -1,6 +1,7 @@
 ''' all functions for the behave tests '''
 from behave import given, when, then, step
 import collections
+from datetime import datetime
 from aisha_time import time_day, timestamp_to_decimal, \
     decimal_time_to_timestamp, work_week_and_actual_day, the_actual_time
 from THE_TIME import time_conv, time_inv, WT_parameter_calculation, \
@@ -33,6 +34,12 @@ def get_work_week(context):
 @given('an invalid work week {work_week}')
 def get_work_week(context, work_week):
     context.work_week = TEST_WORK_WEEKS[work_week]
+    return context
+
+@given('you check now')
+def check_now(context):
+    context.generated_day = datetime.today().weekday()
+    context.generated_timestamp = datetime.now().strftime("%H:%M:%S")
     return context
 
 ################################################################################
@@ -88,6 +95,7 @@ def time_check(context):
     context.truman_actual_time = actual_time()
     print(context.truman_actual_time)
     return context
+
 ################################################################################
 ## THEN #########################################################€##############
 
@@ -133,7 +141,13 @@ def timestamp_converstion_success(context, actual_time):
 
 @then('the two actual times are equal')
 def two_method_check(context):
-    assert context.aisha_actual_time == context.aisha_actual_time
+    assert context.aisha_actual_time == context.truman_actual_time
+
+@then('the day of the week and the time as HH:MM:SS are returned')
+def now_is_now(context):
+    context.aisha_timestamp, context.aisha_day = time_day()
+    assert WEEK[context.generated_day] == context.aisha_day
+    assert context.generated_timestamp == context.aisha_timestamp
 
 ################################################################################
 ## VALIDATION FUNCTIONS ########################################################
@@ -180,6 +194,16 @@ def validate_work_week(work_week):
 
 ################################################################################
 ## TEST DATA ###################################################################
+
+WEEK = {
+    0:"Monday",
+    1:"Tuesday",
+    2:"Wednesday",
+    3:"Thursday",
+    4:"Friday",
+    5:"Saturday",
+    6:"Sunday"
+    }
 
 INVALID_WORK_WEEK_1 = collections.OrderedDict()
 INVALID_WORK_WEEK_1['Monday'] = ('09:00:00', '17:30:00')

@@ -1,5 +1,11 @@
 Feature: Calculating the actual time
 
+    @new
+    Scenario: format the real time
+      Given you check now
+      Then the day of the week and the time as HH:MM:SS are returned
+
+
     @comparison
     Scenario: Truman and Aisha time comparisons
       Given the timestamp <timestamp> and day <day>
