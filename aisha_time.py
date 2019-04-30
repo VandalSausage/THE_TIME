@@ -12,8 +12,7 @@ Process of calculating the time:
 - Convert work day time to actual time
 - Output Actual Time
 '''
-
-import time
+from datetime import datetime
 import math as m
 
 DEBUG = False
@@ -24,9 +23,6 @@ DEBUG = False
 def time_day():
     ''' returns the current time formatted as
     "Day-of-week hh:mm:ss" '''
-
-    # Current datetime
-    now = time.localtime()
 
     # Get day of week
     week = {
@@ -39,18 +35,16 @@ def time_day():
         6:"Sunday"
         }
 
-    today = week[now[6]]
+    today = week[datetime.today().weekday()]
 
-    # Get time
-    hour_second_min = [str(now[3]), str(now[4]), str(now[5])]
+    if DEBUG:
+        print(today)
 
-    for k in range(3):
-        if len(hour_second_min[k]) == 1:
-            join = ['0', hour_second_min[k]]
-            hour_second_min[k] = "".join(join)
+    # Get timestamp
+    timestamp = ("{}").format(datetime.now().strftime("%H:%M:%S"))
 
-    # generate the timestamp
-    timestamp = ("{}".format((":".join(hour_second_min))))
+    if DEBUG:
+        print(timestamp)
 
     # return timestamp and day
     return timestamp, today
