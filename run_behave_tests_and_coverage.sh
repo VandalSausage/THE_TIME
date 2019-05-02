@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "######## RUNNING BEHAVE TESTS"
-coverage run --source='.' -m behave
+coverage run --omit /venv/* --source='.' -m behave
 
 echo "######## GENERATING COVERAGE REPORT"
 coverage html

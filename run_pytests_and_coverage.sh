@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "######## RUNNING PYTESTS"
-coverage run --source='.' -m pytest
+coverage run --omit /venv/* --source='.' -m pytest
 
 echo "######## GENERATING COVERAGE REPORT"
 coverage html
